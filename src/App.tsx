@@ -3,476 +3,327 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { BookOpen, MapPin, Heart, ArrowRight, RefreshCcw, Scroll, History, ShieldCheck, Zap, Volume2, VolumeX, Sparkles } from "lucide-react";
-import { STORY_NODES, StoryNode } from "./nodes";
-
-interface Promise {
-  reference: string;
-  text: string;
-}
+import { BookOpen, MapPin, Heart, ArrowRight, RefreshCcw, Sparkles } from "lucide-react";
+import { STORY_NODES, StoryNode, MoodAction } from "./nodes";
 
 export default function App() {
-  const [appState, setAppState] = useState<"welcome" | "story">("welcome");
-  const [currentNodeId, setCurrentNodeId] = useState<string>("inicio");
-  const [history, setHistory] = useState<string[]>([]);
-  const [peaceScore, setPeaceScore] = useState(30); // Starting with some basic "stress"
-  const [collectedPromises, setCollectedPromises] = useState<Promise[]>([]);
-  const [showInventory, setShowInventory] = useState(false);
-  const [lastPromiseUnlocked, setLastPromiseUnlocked] = useState<Promise | null>(null);
-  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+  const [currentNodeId, setCurrentNodeId] = useState<string>("introspeccion");
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  
+  // Internal Stats
+  const [stats, setStats] = useState({
+    ansiedad: 10,
+    paz: 10,
+    fe: 5
+  });
 
-  const currentNode = STORY_NODES[currentNodeId] || STORY_NODES["inicio"];
+  const currentNode = useMemo(() => 
+    STORY_NODES[currentNodeId] || STORY_NODES["introspeccion"], 
+    [currentNodeId]
+  );
 
-  const audioContextRef = useRef<AudioContext | null>(null);
-
-  const playTone = (freq: number, type: OscillatorType = "sine", duration = 0.1) => {
-    if (!isAudioEnabled) return;
-    if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const handleChoice = (choice: any) => {
+    // Update Stats
+    if (choice.impact) {
+      setStats(prev => ({
+        ansiedad: Math.max(0, Math.min(100, prev.ansiedad + (choice.impact.ansiedad || 0))),
+        paz: Math.max(0, Math.min(100, prev.paz + (choice.impact.paz || 0))),
+        fe: Math.max(0, Math.min(100, prev.fe + (choice.impact.fe || 0)))
+      }));
     }
-    const ctx = audioContextRef.current;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    
-    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
-    
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    
-    osc.start();
-    osc.stop(ctx.currentTime + duration);
-  };
 
-  const speak = (text: string, mood: "conscience" | "wisdom") => {
-    if (!isAudioEnabled) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "es-ES";
-    utterance.rate = mood === "wisdom" ? 0.85 : 1.1;
-    utterance.pitch = mood === "wisdom" ? 0.9 : 1.1;
-    window.speechSynthesis.speak(utterance);
-  };
-
-  const handleChoice = (nextNodeId: string) => {
-    const nextNode = STORY_NODES[nextNodeId];
-    if (nextNode) {
-      setHistory((prev) => [...prev, currentNodeId]);
-      
-      // Update Peace Score
-      if (nextNode.peaceDelta !== undefined) {
-        setPeaceScore((prev) => Math.min(100, Math.max(0, prev + nextNode.peaceDelta!)));
-      }
-
-      // Collect Promise if it's new
-      if (nextNode.scripture) {
-        setCollectedPromises((prev) => {
-          const exists = prev.find(p => p.reference === nextNode.scripture!.reference);
-          if (!exists) {
-            setLastPromiseUnlocked(nextNode.scripture!);
-            setTimeout(() => setLastPromiseUnlocked(null), 4000);
-            return [...prev, nextNode.scripture!];
-          }
-          return prev;
-        });
-      }
-
-      setCurrentNodeId(nextNodeId);
-
-      // Automatic narration
-      const mood = (nextNode.peaceDelta || 0) > 0 ? "wisdom" : "conscience";
-      // Split by paragraphs and take first for immediate reaction
-      speak(nextNode.content.split('\n')[0], mood); 
-      
-      if (nextNode.voicePrompt) {
-        setTimeout(() => speak(nextNode.voicePrompt!, mood), 3000);
-      }
+    // Special reset logic for certain transitions
+    if (choice.nextNode === "introspeccion" && choice.impact?.ansiedad === -100) {
+      setStats({ ansiedad: 10, paz: 10, fe: 5 });
     }
-  };
 
-  const undoChoice = () => {
-    if (history.length > 0) {
-      const prevHistory = [...history];
-      const prevNodeId = prevHistory.pop()!;
-      
-      setHistory(prevHistory);
-      setCurrentNodeId(prevNodeId);
-      window.speechSynthesis.cancel();
-    }
-  };
-
-  const startJourney = () => {
-    setAppState("story");
-    setIsAudioEnabled(true);
-    // Speak first paragraph
-    speak(STORY_NODES["inicio"].content.split('\n')[0], "conscience");
-    if (STORY_NODES["inicio"].voicePrompt) {
-        setTimeout(() => speak(STORY_NODES["inicio"].voicePrompt!, "conscience"), 3000);
+    if (currentNode.transitionText) {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentNodeId(choice.nextNode);
+        setIsTransitioning(false);
+      }, 4000);
+    } else {
+      setCurrentNodeId(choice.nextNode);
     }
   };
 
   const resetStory = () => {
-    setCurrentNodeId("inicio");
-    setHistory([]);
-    setPeaceScore(30);
-    setCollectedPromises([]);
-    setLastPromiseUnlocked(null);
-    window.speechSynthesis.cancel();
+    setCurrentNodeId("introspeccion");
+    setIsTransitioning(false);
+    setStats({ ansiedad: 10, paz: 10, fe: 5 });
   };
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentNodeId]);
 
-  // Determine mood based on peace score
-  const isStressed = peaceScore < 40;
-  const isPeaceful = peaceScore >= 70;
+  // Sensory Effect Mapping
+  const getSensoryBackground = (mood?: MoodAction) => {
+    switch (mood) {
+      case "glitch": return "bg-zinc-950 text-zinc-100";
+      case "pulse": return "bg-rose-50/20 text-zinc-900";
+      case "blur": return "bg-slate-100/50 text-slate-900";
+      case "dim": return "bg-zinc-900 text-zinc-300";
+      case "vibrate": return "bg-zinc-800 text-zinc-200";
+      case "warm": return "bg-[#faf7f2] text-zinc-800";
+      case "introspective": return "bg-zinc-950 text-zinc-400";
+      case "pure": return "bg-white text-zinc-900";
+      case "loop": return "bg-zinc-100 text-zinc-600";
+      case "collapse": return "bg-black text-red-500";
+      case "growth": return "bg-blue-50/30 text-blue-900";
+      case "freedom": return "bg-white text-yellow-700 font-medium";
+      default: return "bg-[#fcfaf7] text-[#1a1a1a]";
+    }
+  };
 
-  return (
-    <>
-    {appState === "welcome" ? (
-      <div className="min-h-screen bg-[#fcfaf7] flex items-center justify-center p-6 text-center">
+  const getEffectClasses = (mood?: MoodAction) => {
+    switch (mood) {
+      case "glitch": return "glitch-effect";
+      case "blur": return "blur-[3px] opacity-70";
+      case "vibrate": return "shake-effect";
+      case "pulse": return "animate-pulse-slow";
+      case "loop": return "opacity-80 scale-95";
+      case "collapse": return "brightness-50 grayscale";
+      default: return "";
+    }
+  };
+
+  const StatBar = ({ label, value, color, icon: Icon }: any) => (
+    <div className="flex flex-col gap-1 w-full max-w-[120px]">
+      <div className="flex items-center justify-between text-[8px] font-bold uppercase tracking-widest opacity-50">
+        <div className="flex items-center gap-1">
+          <Icon size={10} />
+          {label}
+        </div>
+        <span>{value}%</span>
+      </div>
+      <div className="h-1 w-full bg-zinc-200/20 rounded-full overflow-hidden">
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-md space-y-12"
-        >
-          <div className="space-y-4">
-            <div className="inline-flex p-4 bg-sage-100 text-sage-600 rounded-3xl mb-4">
-              <BookOpen size={32} />
-            </div>
-            <h1 className="font-serif text-5xl text-sage-950">El Camino de la Paz</h1>
-            <p className="text-sage-600 leading-relaxed font-light text-lg">
-              Una experiencia sensorial e interactiva diseñada para transformar tu ansiedad en propósito.
-            </p>
-          </div>
+          initial={{ width: 0 }}
+          animate={{ width: `${value}%` }}
+          className={`h-full ${color}`}
+        />
+      </div>
+    </div>
+  );
 
-          <div className="space-y-4">
-            <button 
-              onClick={startJourney}
-              className="group w-full py-6 bg-sage-600 text-white rounded-3xl font-bold text-xl shadow-2xl shadow-sage-200 hover:bg-sage-700 transition-all flex items-center justify-center gap-3"
+  if (currentNodeId === "introspeccion") {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 font-sans overflow-hidden">
+        <div className="fixed inset-0 opacity-30">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-radial from-zinc-800/20 to-transparent" />
+        </div>
+
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 2 }}
+          className="max-w-xl w-full text-center space-y-16 relative z-10"
+        >
+          <div className="space-y-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 1, 0.5, 1] }}
+              transition={{ duration: 4, times: [0, 0.3, 0.7, 1] }}
+              className="text-zinc-500 text-[10px] uppercase tracking-[0.4em] font-bold"
             >
-              <span>Activar Experiencia Sensorial</span>
-              <Sparkles size={20} className="group-hover:rotate-12 transition-transform" />
-            </button>
-            <p className="text-[10px] text-sage-400 uppercase tracking-widest font-bold">
-              Se recomienda usar audífonos para audio inmersivo
-            </p>
+              El Umbral
+            </motion.div>
+            <motion.h1 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 1.5, delay: 0.5 }}
+              className="font-serif text-3xl md:text-4xl text-zinc-300 leading-relaxed italic"
+            >
+              {currentNode.content.split('\n\n')[0]}
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 2.5, duration: 2 }}
+              className="text-2xl md:text-3xl font-serif text-zinc-100"
+            >
+              {currentNode.content.split('\n\n')[1]}
+            </motion.p>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-3">
+            {currentNode.choices.map((choice, idx) => (
+              <motion.button
+                key={idx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 4 + (idx * 0.2) }}
+                whileHover={{ scale: 1.01, color: "#fff" }}
+                onClick={() => handleChoice(choice)}
+                className="p-5 rounded-full bg-zinc-900/50 border border-zinc-800 text-sm italic text-zinc-500 hover:border-zinc-500 transition-all text-center"
+              >
+                {choice.text}
+              </motion.button>
+            ))}
           </div>
         </motion.div>
       </div>
-    ) : (
-      <div className={`min-h-screen font-sans selection:bg-sage-200 transition-colors duration-1000 ${isStressed ? 'bg-slate-50' : 'bg-[#fcfaf7]'}`}>
-      {/* Dynamic Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden transition-opacity duration-1000">
-        <motion.div 
-          animate={{ 
-            scale: isPeaceful ? 1.2 : 1,
-            opacity: isPeaceful ? 0.3 : 0.1,
-            backgroundColor: isPeaceful ? '#8a9a5b' : (isStressed ? '#334155' : '#8a9a5b')
-          }}
-          className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" 
-        />
-        <motion.div 
-          animate={{ 
-            scale: isStressed ? 1.3 : 1,
-            opacity: isStressed ? 0.2 : 0.1,
-            backgroundColor: isStressed ? '#f97316' : '#d2b48c'
-          }}
-          className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" 
-        />
-      </div>
+    );
+  }
 
-      {/* Global Hud */}
-      <nav className="fixed top-0 left-0 right-0 z-50 p-4 flex justify-between items-center bg-white/40 backdrop-blur-md border-b border-sage-100">
-        <div className="flex items-center gap-6">
-          {/* Peace Bar */}
-          <div className="flex flex-col gap-1 w-32 md:w-48">
-            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-sage-600">
-              <span>Estado de Paz</span>
-              <span>{peaceScore}%</span>
-            </div>
-            <div className="h-1.5 w-full bg-sage-100 rounded-full overflow-hidden">
-              <motion.div 
-                initial={{ width: 0 }}
-                animate={{ width: `${peaceScore}%` }}
-                className={`h-full transition-colors duration-500 ${isStressed ? 'bg-orange-500' : 'bg-sage-600'}`}
-              />
-            </div>
-          </div>
+  return (
+    <div className={`min-h-screen transition-all duration-[2000ms] font-sans selection:bg-sage-200 overflow-x-hidden ${getSensoryBackground(currentNode.mood)}`}>
+      {/* Stats Bar */}
+      {!isTransitioning && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-lg px-6 flex justify-between gap-6 z-50">
+          <StatBar label="Ansiedad" value={stats.ansiedad} color="bg-red-500" icon={BookOpen} />
+          <StatBar label="Paz" value={stats.paz} color="bg-emerald-500" icon={Sparkles} />
+          <StatBar label="Fe" value={stats.fe} color="bg-amber-400" icon={Heart} />
         </div>
+      )}
 
-        <div className="flex items-center gap-2 md:gap-4">
-          <button 
-            onClick={() => setIsAudioEnabled(!isAudioEnabled)}
-            className={`p-2 rounded-full transition-colors ${isAudioEnabled ? 'text-sage-600 bg-sage-50' : 'text-sage-300'}`}
-            title="Toggle Audio"
-          >
-            {isAudioEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
-          </button>
+      {/* Sensory Audio Hint Indicator */}
+      {currentNode.audioHint && !isTransitioning && (
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 0.3, x: 0 }}
+          className="fixed top-8 right-8 flex items-center gap-2 text-[10px] uppercase tracking-widest pointer-events-none"
+        >
+          <div className="w-4 h-px bg-current" />
+          <span>{currentNode.audioHint}</span>
+        </motion.div>
+      )}
 
-          <button 
-            onClick={() => setShowInventory(true)}
-            className="relative p-2 text-sage-900 hover:bg-sage-50 rounded-full transition-colors"
-            title="Inventario de Promesas"
-          >
-            <Scroll size={20} />
-            {collectedPromises.length > 0 && (
-              <span className="absolute top-0 right-0 w-4 h-4 bg-sage-600 text-white text-[8px] flex items-center justify-center rounded-full font-bold">
-                {collectedPromises.length}
-              </span>
-            )}
+      <main className={`story-container relative z-10 min-h-screen flex flex-col justify-center ${getEffectClasses(currentNode.mood)}`}>
+        <header className="absolute top-8 left-1/2 -translate-x-1/2 opacity-20 hover:opacity-100 transition-opacity">
+          <button onClick={resetStory} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
+            <RefreshCcw size={12} />
+            <span>Reiniciar</span>
           </button>
-          
-          <div className="h-4 w-px bg-sage-200" />
-          
-          <button 
-            onClick={resetStory}
-            className="p-2 text-sage-400 hover:text-sage-900 transition-colors"
-            title="Reiniciar"
-          >
-            <RefreshCcw size={20} />
-          </button>
-        </div>
-      </nav>
-
-      <main className="story-container relative z-10 pt-24">
-        {/* Undo Button (Mercy Button) */}
-        <AnimatePresence>
-          {history.length > 0 && (
-            <motion.button
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              onClick={undoChoice}
-              className="mb-8 flex items-center gap-2 text-sage-400 hover:text-sage-900 transition-colors text-[10px] font-bold uppercase tracking-widest"
-            >
-              <History size={14} />
-              <span>Reconsiderar Camino</span>
-            </motion.button>
-          )}
-        </AnimatePresence>
+        </header>
 
         <AnimatePresence mode="wait">
-          <motion.article
-            key={currentNodeId}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="flex flex-col gap-8 pb-20"
-          >
-            {/* Context Badge */}
-            <div className="flex items-center gap-2">
-              {isStressed ? (
-                <div className="flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-700 text-[10px] font-bold uppercase tracking-widest rounded-full border border-orange-200">
-                  <Zap size={10} />
-                  <span>Nivel de Estrés: Crítico</span>
-                </div>
-              ) : isPeaceful ? (
-                <div className="flex items-center gap-2 px-3 py-1 bg-sage-100 text-sage-700 text-[10px] font-bold uppercase tracking-widest rounded-full border border-sage-200">
-                  <ShieldCheck size={10} />
-                  <span>Protección Espiritual</span>
-                </div>
-              ) : null}
-            </div>
+          {isTransitioning ? (
+            <motion.div
+              key="transition"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center text-center space-y-8 h-[60vh]"
+            >
+              <div className="w-px h-12 bg-current opacity-20 mb-4" />
+              <p className="font-serif italic text-2xl md:text-3xl opacity-60 leading-relaxed max-w-lg">
+                {currentNode.transitionText}
+              </p>
+              <motion.div 
+                animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }} 
+                transition={{ repeat: Infinity, duration: 2 }}
+                className="w-1 h-1 bg-current rounded-full"
+              />
+            </motion.div>
+          ) : (
+            <motion.article
+              key={currentNodeId}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1 }}
+              className="flex flex-col gap-14 py-20 pb-40"
+            >
+              <div className="space-y-10">
+                {currentNode.content.split('\n\n').map((p, i) => (
+                  <motion.p 
+                    key={i} 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                      delay: 0.5 + (i * 0.7), // Slower, more intentional staggering
+                      duration: 1.2
+                    }}
+                    className="text-2xl md:text-3xl leading-relaxed font-light font-serif"
+                  >
+                    {p}
+                  </motion.p>
+                ))}
+              </div>
 
-            {/* Node Title */}
-            <h1 className="font-serif text-4xl md:text-6xl leading-tight text-sage-950">
-              {currentNode.title}
-            </h1>
-
-            {/* Narrative Content */}
-            <div className="space-y-6">
-              {currentNode.content.split('\n').map((paragraph, idx) => (
-                <motion.p 
-                  key={idx}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 + (idx * 0.2) }}
-                  className="text-lg md:text-2xl text-sage-900/80 leading-relaxed font-light"
+              {currentNode.scripture && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.5, duration: 1 }}
+                  className="relative py-12 px-8"
                 >
-                  {paragraph}
-                </motion.p>
-              ))}
-            </div>
-
-            {/* Scripture Reveal */}
-            {currentNode.scripture && (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1, type: "spring", damping: 15 }}
-                className="my-8 p-10 bg-white border border-sage-100 rounded-3xl bible-verse-glow relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 p-4 opacity-5">
-                  <Heart size={120} fill="#8a9a5b" />
-                </div>
-                <p className="font-serif italic text-3xl text-sage-900 mb-6 leading-relaxed relative z-10">
-                  "{currentNode.scripture.text}"
-                </p>
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-sage-600 relative z-10">
-                  <MapPin size={14} className="text-sage-400" />
-                  <span>{currentNode.scripture.reference}</span>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Choices */}
-            <div className="mt-12 flex flex-col gap-4">
-              <h2 className="text-[10px] uppercase tracking-widest font-bold text-sage-400 mb-2">
-                Elige tu destino:
-              </h2>
-              {currentNode.choices.map((choice, idx) => (
-                <motion.button
-                  key={idx}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 1.5 + (idx * 0.15) }}
-                  whileHover={{ x: 10, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                        playTone(choice.isBiblical ? 880 : 110, "triangle", 0.2);
-                        handleChoice(choice.nextNode);
-                  }}
-                  onMouseEnter={() => {
-                        playTone(choice.isBiblical ? 440 : 220, "sine", 0.05);
-                  }}
-                  className={`group flex items-center justify-between p-8 rounded-3xl border text-left transition-all duration-300
-                    ${choice.isBiblical 
-                      ? "bg-sage-600 border-sage-600 text-white shadow-xl hover:shadow-sage-200" 
-                      : "bg-white border-sage-200 text-sage-900 hover:border-sage-900 shadow-sm"
-                    }`}
-                >
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xl font-medium leading-snug">{choice.text}</span>
-                    {choice.isBiblical && (
-                      <span className="text-[10px] uppercase tracking-widest opacity-60 font-bold">Camino de Fe</span>
-                    )}
+                  <div className="absolute top-0 left-0 w-8 h-px bg-current opacity-20" />
+                  <p className="font-serif text-3xl italic mb-6 leading-tight opacity-90">
+                    "{currentNode.scripture.text}"
+                  </p>
+                  <div className="flex items-center gap-2 text-[10px] font-bold tracking-[0.3em] uppercase opacity-40">
+                    <BookOpen size={12} />
+                    <span>— {currentNode.scripture.reference}</span>
                   </div>
-                  <ArrowRight size={24} className={`opacity-40 group-hover:opacity-100 transition-all ${choice.isBiblical ? 'text-white' : 'text-sage-900'}`} />
-                </motion.button>
-              ))}
-            </div>
-          </motion.article>
+                </motion.div>
+              )}
+
+              <div className="grid gap-6 mt-8">
+                {currentNode.choices.map((choice, idx) => (
+                  <motion.button
+                    key={idx}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 2 + (idx * 0.3) }}
+                    whileHover={{ x: 10 }}
+                    onClick={() => handleChoice(choice)}
+                    className="group flex items-center justify-between p-7 rounded-full border border-current opacity-60 hover:opacity-100 transition-all text-left"
+                  >
+                    <span className="text-xl md:text-2xl font-light italic">{choice.text}</span>
+                    <ArrowRight size={20} className="translate-x-[-10px] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all" />
+                  </motion.button>
+                ))}
+              </div>
+
+              {currentNode.isEnding && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.4 }}
+                  transition={{ delay: 4 }}
+                  className="text-center text-[10px] uppercase tracking-[0.5em] font-bold"
+                >
+                  {currentNode.title} alcanzado
+                </motion.div>
+              )}
+            </motion.article>
+          )}
         </AnimatePresence>
       </main>
 
-      {/* Inventory Modal */}
-      <AnimatePresence>
-        {showInventory && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-sage-950/20 backdrop-blur-sm"
-          >
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-[#fcfaf7] w-full max-w-2xl max-h-[80vh] rounded-[40px] shadow-2xl overflow-hidden flex flex-col"
-            >
-              <div className="p-8 border-b border-sage-100 flex justify-between items-center bg-white">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-sage-100 text-sage-600 rounded-2xl">
-                    <Scroll size={24} />
-                  </div>
-                  <div>
-                    <h2 className="font-serif text-2xl text-sage-950">Inventario de Promesas</h2>
-                    <p className="text-xs text-sage-400 font-bold uppercase tracking-widest">Verdades que has descubierto</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setShowInventory(false)}
-                  className="p-2 hover:bg-sage-50 rounded-full transition-colors text-sage-400 hover:text-sage-950"
-                >
-                  <ArrowRight className="rotate-45" size={24} />
-                </button>
-              </div>
-
-              <div className="p-8 overflow-y-auto space-y-8">
-                {collectedPromises.length === 0 ? (
-                  <div className="py-20 text-center space-y-4">
-                    <p className="text-sage-400 font-light text-xl italic">Aún no has descubierto ninguna promesa...</p>
-                    <p className="text-xs text-sage-300 font-bold uppercase tracking-widest">Atraviesa el camino de fe para encontrarlas</p>
-                  </div>
-                ) : (
-                  collectedPromises.map((promise, idx) => (
-                    <motion.div 
-                      key={idx}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="group"
-                    >
-                      <p className="font-serif italic text-xl text-sage-900 group-hover:text-sage-600 transition-colors leading-relaxed">
-                        "{promise.text}"
-                      </p>
-                      <div className="mt-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-sage-400">
-                        <MapPin size={12} />
-                        <span>{promise.reference}</span>
-                      </div>
-                      {idx < collectedPromises.length - 1 && <div className="mt-8 h-px bg-sage-100" />}
-                    </motion.div>
-                  ))
-                )}
-              </div>
-
-              <div className="p-8 bg-sage-50 text-center">
-                <p className="text-[10px] text-sage-400 uppercase tracking-widest italic">
-                  "El cielo y la tierra pasarán, pero mis palabras no pasarán"
-                </p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Unlock Notification */}
-      <AnimatePresence>
-        {lastPromiseUnlocked && (
-          <motion.div 
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: -20, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[110] w-full max-w-sm"
-          >
-            <div className="mx-4 p-6 bg-sage-900 text-white rounded-[32px] shadow-2xl flex items-center gap-4 border border-white/20">
-              <div className="p-3 bg-white/10 rounded-2xl">
-                <Scroll size={24} className="text-sage-300" />
-              </div>
-              <div className="flex-1">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-sage-300 mb-1">¡Promesa Desbloqueada!</p>
-                <p className="text-sm font-medium leading-snug line-clamp-2 italic">"{lastPromiseUnlocked.text}"</p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <style>{`
-        .text-sage-950 { color: #1a2a1a; }
-        .text-sage-900 { color: #2a3a2a; }
-        .text-sage-600 { color: #5a6a3a; }
-        .text-sage-400 { color: #8a9a8a; }
-        .bg-sage-50 { background-color: #f5f7f2; }
-        .bg-sage-100 { background-color: #e5e9e0; }
-        .bg-sage-600 { background-color: #8a9a5b; }
-        .bg-sage-900 { background-color: #2a3a1a; }
-        .bg-sage-950 { background-color: #1a2310; }
-        .border-sage-100 { border-color: #e5e9e0; }
-        .border-sage-200 { border-color: #d5d9d0; }
-        .selection\:bg-sage-200::selection { background-color: #8a9a5b55; }
-        .bible-verse-glow { box-shadow: 0 0 40px rgba(138, 154, 91, 0.1); }
+        .glitch-effect {
+          animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
+        }
+        @keyframes glitch {
+          0% { transform: translate(0); text-shadow: 0 0 0 transparent; }
+          20% { transform: translate(-2px, 2px); text-shadow: 2px 0 red, -2px 0 cyan; }
+          40% { transform: translate(-2px, -2px); text-shadow: -2px 0 red, 2px 0 cyan; }
+          60% { transform: translate(2px, 2px); text-shadow: 2px 0 red, -2px 0 cyan; }
+          80% { transform: translate(2px, -2px); text-shadow: -2px 0 red, 2px 0 cyan; }
+          100% { transform: translate(0); text-shadow: 0 0 0 transparent; }
+        }
+        .shake-effect {
+          animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite;
+        }
+        @keyframes shake {
+          10%, 90% { transform: translate3d(-1px, 0, 0); }
+          20%, 80% { transform: translate3d(2px, 0, 0); }
+          30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+          40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .animate-pulse-slow {
+          animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .bg-gradient-radial {
+          background-image: radial-gradient(var(--tw-gradient-stops));
+        }
       `}</style>
     </div>
-    )}
-    </>
   );
 }
