@@ -14,7 +14,7 @@ interface Promise {
 }
 
 export default function App() {
-  const [appState, setAppState] = useState<"welcome" | "intro" | "story">("welcome");
+  const [appState, setAppState] = useState<"welcome" | "story">("welcome");
   const [currentNodeId, setCurrentNodeId] = useState<string>("inicio");
   const [history, setHistory] = useState<string[]>([]);
   const [peaceScore, setPeaceScore] = useState(30); // Starting with some basic "stress"
@@ -22,39 +22,6 @@ export default function App() {
   const [showInventory, setShowInventory] = useState(false);
   const [lastPromiseUnlocked, setLastPromiseUnlocked] = useState<Promise | null>(null);
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
-
-  const [introStep, setIntroStep] = useState(0);
-  const introKeywords = ["Miedo", "Control", "Paz", "Promesa"];
-
-  const speakIntro = () => {
-    const text = "Bienvenido. Estás a punto de entrar en un territorio donde el tiempo parece detenerse y el ruido se vuelve insoportable. Aquí, cada una de tus decisiones tiene un peso eterno. No estás aquí para leer una historia, sino para decidir cómo terminará la tuya. El miedo te ha traído hasta este umbral... pero la Verdad será quien te enseñe la salida. Toma un respiro profundo. Escucha con el corazón. Tu viaje hacia la paz comienza... ahora.";
-    
-    if (isAudioEnabled) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "es-ES";
-      utterance.rate = 0.85;
-      utterance.pitch = 0.9;
-      window.speechSynthesis.speak(utterance);
-    }
-
-    // Sequence the keyword visuals
-    let step = 0;
-    const interval = setInterval(() => {
-      step++;
-      setIntroStep(step);
-      if (step > introKeywords.length) {
-        clearInterval(interval);
-      }
-    }, 4500);
-  };
-
-  const startStoryNarration = () => {
-    speak(STORY_NODES["inicio"].content.split("\n")[0], "conscience");
-    if (STORY_NODES["inicio"].voicePrompt) {
-      setTimeout(() => speak(STORY_NODES["inicio"].voicePrompt!, "conscience"), 3000);
-    }
-  };
 
   const currentNode = STORY_NODES[currentNodeId] || STORY_NODES["inicio"];
 
@@ -140,10 +107,13 @@ export default function App() {
   };
 
   const startJourney = () => {
+    setAppState("story");
     setIsAudioEnabled(true);
-    setAppState("intro");
-    // Small delay to ensure audio context is ready
-    setTimeout(speakIntro, 500);
+    // Speak first paragraph
+    speak(STORY_NODES["inicio"].content.split('\n')[0], "conscience");
+    if (STORY_NODES["inicio"].voicePrompt) {
+        setTimeout(() => speak(STORY_NODES["inicio"].voicePrompt!, "conscience"), 3000);
+    }
   };
 
   const resetStory = () => {
@@ -195,48 +165,6 @@ export default function App() {
             </p>
           </div>
         </motion.div>
-      </div>
-    ) : appState === "intro" ? (
-      <div className="min-h-screen bg-black flex items-center justify-center p-6 overflow-hidden">
-        <div className="relative flex flex-col items-center">
-          <AnimatePresence mode="wait">
-            {introStep > 0 && introStep <= introKeywords.length && (
-              <motion.h2
-                key={introStep}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1.1 }}
-                exit={{ opacity: 0, scale: 1.2 }}
-                transition={{ duration: 2 }}
-                className="font-serif text-6xl md:text-8xl text-white/40 tracking-tighter"
-              >
-                {introKeywords[introStep - 1]}
-              </motion.h2>
-            )}
-            
-            {introStep > introKeywords.length && (
-              <motion.button
-                key="enter-button"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                onClick={() => {
-                  setAppState("story");
-                  startStoryNarration();
-                }}
-                className="px-10 py-5 bg-white text-black font-serif text-2xl rounded-full hover:bg-white/90 transition-all shadow-[0_0_50px_rgba(255,255,255,0.3)]"
-              >
-                Entrar al Laberinto
-              </motion.button>
-            )}
-          </AnimatePresence>
-
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.2 }}
-            className="absolute inset-0 w-[300px] h-[300px] bg-white rounded-full blur-[100px]"
-          />
-          
-          <div className="mt-12 w-32 h-px bg-white/10" />
-        </div>
       </div>
     ) : (
       <div className={`min-h-screen font-sans selection:bg-sage-200 transition-colors duration-1000 ${isStressed ? 'bg-slate-50' : 'bg-[#fcfaf7]'}`}>
@@ -409,11 +337,11 @@ export default function App() {
                   whileHover={{ x: 10, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
-                        playTone(choice.isBiblical ? 523.25 : 82.41, choice.isBiblical ? "sine" : "sawtooth", 0.4);
+                        playTone(choice.isBiblical ? 880 : 110, "triangle", 0.2);
                         handleChoice(choice.nextNode);
                   }}
                   onMouseEnter={() => {
-                        playTone(choice.isBiblical ? 440 : 110, "sine", 0.1);
+                        playTone(choice.isBiblical ? 440 : 220, "sine", 0.05);
                   }}
                   className={`group flex items-center justify-between p-8 rounded-3xl border text-left transition-all duration-300
                     ${choice.isBiblical 
