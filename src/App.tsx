@@ -4,11 +4,14 @@ import { ROOMS, RoomId, Room } from './data/narrative';
 import { 
   Heart, Wind, Moon, Sun, Anchor, Droplets, Leaf, Compass, Brain, 
   MapPin, History, Clock, VolumeX, Monitor, Coffee, Cloud, Lock, 
-  Activity, Sunrise, LogOut, Footprints, Eye, Trees, Waves, Sparkles 
+  Activity, Sunrise, LogOut, Footprints, Eye, Trees, Waves, Sparkles,
+  Share2, Check 
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useIntelligence } from './hooks/useIntelligence';
+import { useAmbientSound } from './hooks/useAmbientSound';
+import { Volume2 } from 'lucide-react';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -141,11 +144,13 @@ export default function App() {
   const [showPause, setShowPause] = useState(false);
   const [showTruth, setShowTruth] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
+  const [shareStatus, setShareStatus] = useState<'idle' | 'copied' | 'shared'>('idle');
   const containerRef = useRef<HTMLDivElement>(null);
   
   const { state, recordRoomEntry, setInitialContext, getInitialRoomId, getSuggestedNextRoom, getTimeContext } = useIntelligence();
   
   const currentRoom = ROOMS[currentId];
+  const { isEnabled: isSoundOn, toggleSound } = useAmbientSound(currentRoom.zone);
   const timeContext = getTimeContext();
 
   // Dynamic choices for entry
@@ -236,6 +241,34 @@ export default function App() {
     }
 
     goToRoom(nextRoom);
+  };
+
+  const handleShare = async () => {
+    const shareText = `${displayReflection}\n\n"${currentRoom.sownTruth}"\n\n— Refugio Coram Deo`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Refugio Coram Deo',
+          text: shareText,
+          url: window.location.origin
+        });
+        setShareStatus('shared');
+        setTimeout(() => setShareStatus('idle'), 2000);
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Error sharing:', error);
+        }
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareText);
+        setShareStatus('copied');
+        setTimeout(() => setShareStatus('idle'), 2000);
+      } catch (error) {
+        console.error('Failed to copy:', error);
+      }
+    }
   };
 
   const goToRoom = (id: RoomId) => {
@@ -420,6 +453,33 @@ export default function App() {
                   ))}
                 </div>
               </div>
+
+              {/* Share Action */}
+              {currentId !== 'welcome' && currentId !== 'reaction' && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.4 }}
+                  transition={{ delay: 7.5 }}
+                  className="flex justify-center pt-8"
+                >
+                  <button
+                    onClick={handleShare}
+                    className="flex items-center gap-3 px-6 py-3 rounded-full border border-white/10 hover:bg-white/5 transition-all text-[10px] font-mono tracking-[0.2em] uppercase cursor-pointer"
+                  >
+                    {shareStatus === 'idle' ? (
+                      <>
+                        <Share2 size={14} />
+                        Compartir reflexión
+                      </>
+                    ) : (
+                      <>
+                        <Check size={14} className="text-emerald-400" />
+                        {shareStatus === 'copied' ? 'Copiado' : 'Compartido'}
+                      </>
+                    )}
+                  </button>
+                </motion.div>
+              )}
             </div>
           </motion.div>
         </AnimatePresence>
@@ -427,13 +487,23 @@ export default function App() {
 
       {/* Persistent Footer */}
       <footer className="py-24 flex flex-col items-center gap-8 opacity-20 text-[10px] tracking-[0.3em] uppercase font-mono">
+        <div className="flex items-center gap-12">
+          <button 
+            onClick={toggleSound}
+            className="flex items-center gap-2 hover:text-white transition-colors cursor-pointer"
+          >
+            {isSoundOn ? <Volume2 size={12} /> : <VolumeX size={12} />}
+            {isSoundOn ? 'Sonido: On' : 'Sonido: Off'}
+          </button>
+          
+          <button 
+            onClick={() => goToRoom('welcome')} 
+            className="hover:text-white transition-colors cursor-pointer"
+          >
+            Volver al Inicio
+          </button>
+        </div>
         <div className="h-[1px] w-12 bg-current" />
-        <button 
-          onClick={() => goToRoom('welcome')} 
-          className="hover:text-white transition-colors cursor-pointer"
-        >
-          Volver al Inicio
-        </button>
       </footer>
     </div>
   );
