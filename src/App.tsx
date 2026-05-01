@@ -252,12 +252,13 @@ export default function App() {
 
   const handleShare = async () => {
     playSound('transition');
+    const shareTitle = '¿Cómo te sientes hoy? Mejora tu estado de ánimo';
     const shareText = `${displayReflection}\n\n"${currentRoom.sownTruth}"\n\n— Refugio Coram Deo`;
     
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Refugio Coram Deo',
+          title: shareTitle,
           text: shareText,
           url: window.location.origin
         });
@@ -270,7 +271,7 @@ export default function App() {
       }
     } else {
       try {
-        await navigator.clipboard.writeText(shareText);
+        await navigator.clipboard.writeText(`${shareTitle}\n\n${shareText}\n\n${window.location.origin}`);
         setShareStatus('copied');
         setTimeout(() => setShareStatus('idle'), 2000);
       } catch (error) {

@@ -57,10 +57,10 @@ export function useAmbientSound(zone: ZoneId, roomId?: RoomId, isThinking?: bool
             audio.play().then(() => {
               // Fade in
               fadeInInterval = setInterval(() => {
-                if (audio.volume < 0.55) { 
+                if (audio.volume < 0.8) { 
                   audio.volume += 0.03;
                 } else {
-                  audio.volume = 0.6;
+                  audio.volume = 0.85;
                   clearInterval(fadeInInterval);
                 }
               }, 50);
@@ -77,7 +77,7 @@ export function useAmbientSound(zone: ZoneId, roomId?: RoomId, isThinking?: bool
       };
     } else if (audio.paused && isEnabled) {
       audio.play().catch(() => {});
-      audio.volume = 0.6;
+      audio.volume = 0.85;
     }
   }, [zone, roomId, isThinking, isEnabled]);
 

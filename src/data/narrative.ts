@@ -469,20 +469,20 @@ export const ROOMS: Record<RoomId, Room> = {
   'breathe-again': {
     id: 'breathe-again',
     zone: 'quietud',
-    sensoryOpening: "Tus pulmones se expanden sin esa punzada de dolor por primera vez en mucho tiempo.",
-    internalRefleciton: "Cada aliento es el primer acto de fe: aceptar un regalo que no fabricaste. Un recordatorio de que Él sigue sosteniéndote, incluso cuando tú querías soltarlo todo. Respira. Todavía estás aquí.",
-    pauseText: "Siente el aire entrar y salir.",
+    sensoryOpening: "Una luz suave, de color cian, baña la estancia. Tus pulmones se expanden con un alivio profundo, sintiendo una renovación que recorre tu cuerpo.",
+    internalRefleciton: "Cada aliento es el primer acto de fe: aceptar un regalo que no fabricaste. Es el aire de un nuevo comienzo. Un recordatorio de que Él sigue sosteniéndote, incluso cuando el camino parecía cerrarse. Respira. Estás siendo renovado ahora mismo.",
+    pauseText: "Habita este alivio. Deja que el aire te limpie.",
     microExercise: {
       title: "Suspiro de Alivio",
-      instructions: "Toma aire profundamente y suéltalo con un sonido de alivio. Deja salir meses de tensión acumulada en tu pecho."
+      instructions: "Toma aire profundamente... mantén un segundo... y suéltalo con un sonido de alivio audible. Deja salir meses de tensión acumulada en este solo suspiro."
     },
-    sownTruth: "Él sopló aliento de vida. No estás solo en tu respirar; Él está en cada ciclo de tu vida.",
+    sownTruth: "Él sopló aliento de vida. No estás solo en tu respirar; Su Espíritu es la vida que fluye en ti.",
     choices: [
-      { text: "Caminas hacia el jardín.", nextRoom: 'stillness' },
-      { text: "Sientes que puedes caminar de nuevo.", nextRoom: 'small-step' }
+      { text: "Caminas hacia la quietud absoluta.", nextRoom: 'stillness' },
+      { text: "Te sientes listo para un paso pequeño.", nextRoom: 'small-step' }
     ],
     theme: { bg: 'bg-cyan-950', text: 'text-cyan-100', accent: 'cyan' },
-    metadata: { energy: 'low', focus: ['respiracion', 'renovacion'] }
+    metadata: { energy: 'low', focus: ['alivio', 'renovacion'] }
   },
   'open-window': {
     id: 'open-window',
@@ -560,9 +560,9 @@ export const ROOMS: Record<RoomId, Room> = {
   'small-step': {
     id: 'small-step',
     zone: 'camino',
-    sensoryOpening: "Frente a ti hay un camino claro, pero solo puedes ver los siguientes dos metros de tierra.",
-    internalRefleciton: "Confiar no es ver el final, es conocer al Guía. No necesitas el mapa completo de tu vida hoy, solo la obediencia para el siguiente metro. Un paso pequeño en la dirección correcta es una victoria inmensa. Mira tus pies; están listos para avanzar.",
-    pauseText: "Un solo paso. Sin prisa.",
+    sensoryOpening: "Frente a ti hay un camino claro, pero solo puedes ver los siguientes dos metros de tierra. Escuchas el canto de las aves y el murmullo de un arroyo suave que corre cerca.",
+    internalRefleciton: "Confiar no es ver el final, es conocer al Guía. Como el agua del arroyo que fluye sin esfuerzo, no necesitas el mapa completo de tu vida hoy, solo la obediencia para el siguiente metro. Un paso pequeño en la dirección correcta es una victoria inmensa. Mira tus pies; están listos para avanzar.",
+    pauseText: "Escucha el agua y el bosque. Un solo paso.",
     microExercise: {
       title: "Acción Vital",
       instructions: "¿Cuál es el paso más pequeño y sano que puedes dar al salir de aquí? Solo uno. Sin presión. El camino se hace caminando."
