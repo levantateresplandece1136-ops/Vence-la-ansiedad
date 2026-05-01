@@ -11,6 +11,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useIntelligence } from './hooks/useIntelligence';
 import { useAmbientSound } from './hooks/useAmbientSound';
+import { useSystemSounds } from './hooks/useSystemSounds';
 import { Volume2 } from 'lucide-react';
 
 function cn(...inputs: ClassValue[]) {
@@ -32,25 +33,25 @@ const ThinkingOverlay = () => (
             opacity: [0.1, 0.3, 0.1]
           }}
           transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-          className="absolute inset-0 bg-white rounded-full blur-3xl"
+          className="absolute inset-0 bg-white rounded-full blur-3xl opacity-20"
         />
         <motion.div
           animate={{ 
-            scale: [1, 1.15, 1],
-            opacity: [0.3, 0.6, 0.3]
+            scale: [1, 1.5, 1],
+            opacity: [0.5, 1, 0.5]
           }}
-          transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-          className="w-16 h-16 rounded-full border border-white/20 flex items-center justify-center relative z-10"
+          transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+          className="w-16 h-16 rounded-full border border-white/40 flex items-center justify-center relative z-10"
         >
-          <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+          <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
         </motion.div>
       </div>
       <motion.p 
-        animate={{ opacity: [0.2, 0.5, 0.2] }}
+        animate={{ opacity: [0.3, 0.7, 0.3] }}
         transition={{ duration: 3, repeat: Infinity }}
-        className="text-[10px] font-mono tracking-[0.6em] uppercase text-white/40"
+        className="text-[11px] font-mono tracking-[0.6em] uppercase text-white/60"
       >
-        El refugio respira contigo...
+        Respira conmigo...
       </motion.p>
     </div>
   </motion.div>
@@ -62,15 +63,15 @@ const BreathTimer = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCount((c) => (c + 1) % 12);
+      setCount((c) => (c + 1) % 6);
     }, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    if (count < 4) setPhase('Inhala');
-    else if (count < 8) setPhase('Mantén');
+    if (count < 2) setPhase('Inhala');
+    else if (count < 4) setPhase('Mantén');
     else setPhase('Exhala');
   }, [count]);
 
@@ -150,7 +151,8 @@ export default function App() {
   const { state, recordRoomEntry, setInitialContext, getInitialRoomId, getSuggestedNextRoom, getTimeContext } = useIntelligence();
   
   const currentRoom = ROOMS[currentId];
-  const { isEnabled: isSoundOn, toggleSound } = useAmbientSound(currentRoom.zone);
+  const { isEnabled: isSoundOn, toggleSound } = useAmbientSound(currentRoom.zone, currentId, isThinking);
+  const { playSound } = useSystemSounds(isSoundOn);
   const timeContext = getTimeContext();
 
   // Dynamic choices for entry
@@ -171,8 +173,7 @@ export default function App() {
 
     // Layer 4: Memory Emotional
     if (state.sessionCount > 1 && currentId === 'welcome') {
-      const lastSession = state.lastSessionDate ? new Date(state.lastSessionDate).toLocaleDateString() : 'hace tiempo';
-      return `Has vuelto al refugio. La última vez fue el ${lastSession}. El lugar sigue aquí, esperándote. ¿Cómo te sientes hoy?`;
+      return `Has vuelto al refugio. El lugar sigue aquí, esperándote. ¿Cómo te sientes hoy?`;
     }
 
     // Layer 3 & 8: Context Awareness
@@ -200,7 +201,12 @@ export default function App() {
     recordRoomEntry(currentId);
 
     const pauseTimer = setTimeout(() => setShowPause(true), 2500);
-    const truthTimer = setTimeout(() => setShowTruth(true), 6000);
+    const truthTimer = setTimeout(() => {
+      setShowTruth(true);
+      if (currentId !== 'welcome' && currentId !== 'reaction') {
+        playSound('success');
+      }
+    }, 6000);
 
     return () => {
       clearTimeout(pauseTimer);
@@ -209,6 +215,7 @@ export default function App() {
   }, [currentId, recordRoomEntry]);
 
   const handleChoice = (text: string, nextRoom: RoomId) => {
+    playSound('click');
     if (currentId === 'welcome') {
       setInitialContext(text, ''); // Temporary set feeling
       goToRoom('reaction');
@@ -222,7 +229,7 @@ export default function App() {
         setInitialContext(state.feeling || '', text);
         setIsThinking(false);
         goToRoom(initialRoom);
-      }, 2400);
+      }, 6000);
       return;
     }
 
@@ -236,7 +243,7 @@ export default function App() {
       setTimeout(() => {
         setIsThinking(false);
         goToRoom(suggestion);
-      }, 1800);
+      }, 6000);
       return;
     }
 
@@ -244,6 +251,7 @@ export default function App() {
   };
 
   const handleShare = async () => {
+    playSound('transition');
     const shareText = `${displayReflection}\n\n"${currentRoom.sownTruth}"\n\n— Refugio Coram Deo`;
     
     if (navigator.share) {
@@ -272,6 +280,7 @@ export default function App() {
   };
 
   const goToRoom = (id: RoomId) => {
+    playSound('transition');
     setCurrentId(id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -396,10 +405,37 @@ export default function App() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.5 }}
                 transition={{ delay: 3.5, duration: 2 }}
-                className="text-center italic font-serif text-xl md:text-2xl py-16 border-y border-white/5 px-4"
+                className="text-center italic font-serif text-xl md:text-2xl py-16 border-y border-white/5 px-4 mb-8"
               >
                  {currentRoom.sownTruth}
               </motion.div>
+
+              {/* Share Action - Enhanced visibility */}
+              {currentId !== 'welcome' && currentId !== 'reaction' && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 3.8 }}
+                  className="flex justify-center -mt-16 mb-20 px-8"
+                >
+                  <button
+                    onClick={handleShare}
+                    className="flex items-center gap-3 px-8 py-4 rounded-full border border-white/40 bg-white/10 hover:bg-white/[0.18] hover:border-white/60 transition-all text-[11px] font-mono tracking-[0.3em] uppercase cursor-pointer group shadow-lg shadow-black/20"
+                  >
+                    {shareStatus === 'idle' ? (
+                      <>
+                        <Share2 size={15} className="group-hover:scale-110 transition-transform opacity-80" />
+                        <span className="opacity-80 group-hover:opacity-100">Compartir verdad</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check size={15} className="text-emerald-400 animate-bounce" />
+                        <span className="text-emerald-400">{shareStatus === 'copied' ? 'Copiado' : 'Enviado'}</span>
+                      </>
+                    )}
+                  </button>
+                </motion.div>
+              )}
 
               {/* Micro-exercise */}
               {currentRoom.microExercise && (
@@ -453,57 +489,35 @@ export default function App() {
                   ))}
                 </div>
               </div>
-
-              {/* Share Action */}
-              {currentId !== 'welcome' && currentId !== 'reaction' && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.4 }}
-                  transition={{ delay: 7.5 }}
-                  className="flex justify-center pt-8"
-                >
-                  <button
-                    onClick={handleShare}
-                    className="flex items-center gap-3 px-6 py-3 rounded-full border border-white/10 hover:bg-white/5 transition-all text-[10px] font-mono tracking-[0.2em] uppercase cursor-pointer"
-                  >
-                    {shareStatus === 'idle' ? (
-                      <>
-                        <Share2 size={14} />
-                        Compartir reflexión
-                      </>
-                    ) : (
-                      <>
-                        <Check size={14} className="text-emerald-400" />
-                        {shareStatus === 'copied' ? 'Copiado' : 'Compartido'}
-                      </>
-                    )}
-                  </button>
-                </motion.div>
-              )}
             </div>
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* Persistent Footer */}
-      <footer className="py-24 flex flex-col items-center gap-8 opacity-20 text-[10px] tracking-[0.3em] uppercase font-mono">
-        <div className="flex items-center gap-12">
+      {/* Persistent Footer - Enhanced visibility */}
+      <footer className="py-24 flex flex-col items-center gap-10 text-[11px] tracking-[0.3em] uppercase font-mono">
+        <div className="flex flex-wrap justify-center items-center gap-x-16 gap-y-8 px-6 text-white/80 hover:text-white transition-colors">
           <button 
             onClick={toggleSound}
-            className="flex items-center gap-2 hover:text-white transition-colors cursor-pointer"
+            className="flex items-center gap-3 text-white/90 hover:text-white transition-colors cursor-pointer group py-2"
           >
-            {isSoundOn ? <Volume2 size={12} /> : <VolumeX size={12} />}
-            {isSoundOn ? 'Sonido: On' : 'Sonido: Off'}
+            <div className="p-2 rounded-full border border-white/30 group-hover:border-white/60 group-hover:bg-white/5 transition-all">
+              {isSoundOn ? <Volume2 size={14} /> : <VolumeX size={14} />}
+            </div>
+            <span className="font-medium">{isSoundOn ? 'Sonido: Activado' : 'Sonido: Silencio'}</span>
           </button>
           
           <button 
             onClick={() => goToRoom('welcome')} 
-            className="hover:text-white transition-colors cursor-pointer"
+            className="flex items-center gap-3 text-white/90 hover:text-white transition-colors cursor-pointer group py-2"
           >
-            Volver al Inicio
+            <div className="p-2 rounded-full border border-white/30 group-hover:border-white/60 group-hover:bg-white/5 transition-all">
+              <LogOut size={14} className="rotate-[-135deg]" />
+            </div>
+            <span className="font-medium">Inicio</span>
           </button>
         </div>
-        <div className="h-[1px] w-12 bg-current" />
+        <div className="h-[1px] w-24 bg-white/20" />
       </footer>
     </div>
   );
