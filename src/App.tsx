@@ -3,14 +3,33 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { BookOpen, MapPin, Heart, ArrowRight, RefreshCcw, Sparkles } from "lucide-react";
+import { BookOpen, MapPin, Heart, ArrowRight, RefreshCcw, Sparkles, Volume2, VolumeX } from "lucide-react";
 import { STORY_NODES, StoryNode, MoodAction } from "./nodes";
+
+// Audio mapping
+const MOOD_AUDIO: Record<string, string> = {
+  introspective: "https://assets.mixkit.co/sfx/preview/mixkit-deep-ambient-drone-687.mp3",
+  glitch: "https://assets.mixkit.co/sfx/preview/mixkit-digital-glitch-2188.mp3",
+  pulse: "https://assets.mixkit.co/sfx/preview/mixkit-human-heartbeat-slow-loop-531.mp3",
+  dim: "https://assets.mixkit.co/sfx/preview/mixkit-creepy-dark-atmosphere-2483.mp3",
+  vibrate: "https://assets.mixkit.co/sfx/preview/mixkit-low-vibration-atmospheric-loop-1166.mp3",
+  pure: "https://assets.mixkit.co/sfx/preview/mixkit-ethereal-fairy-bells-loop-1100.mp3",
+  warm: "https://assets.mixkit.co/sfx/preview/mixkit-soft-piano-background-505.mp3",
+  loop: "https://assets.mixkit.co/sfx/preview/mixkit-clock-ticking-loop-1050.mp3",
+  collapse: "https://assets.mixkit.co/sfx/preview/mixkit-cinematic-mystery-drone-2166.mp3",
+  growth: "https://assets.mixkit.co/sfx/preview/mixkit-dreamy-ambient-bells-2101.mp3",
+  freedom: "https://assets.mixkit.co/sfx/preview/mixkit-celestial-shimmer-drone-loop-2150.mp3",
+  blur: "https://assets.mixkit.co/sfx/preview/mixkit-underwater-bubbles-loop-1175.mp3"
+};
 
 export default function App() {
   const [currentNodeId, setCurrentNodeId] = useState<string>("introspeccion");
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   
   // Internal Stats
   const [stats, setStats] = useState({
@@ -49,6 +68,58 @@ export default function App() {
       setCurrentNodeId(choice.nextNode);
     }
   };
+
+  // Audio System
+  useEffect(() => {
+    if (!hasStarted || isMuted) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      return;
+    }
+
+    const audioUrl = MOOD_AUDIO[currentNode.mood || "introspective"];
+    if (!audioUrl) return;
+
+    if (!audioRef.current) {
+      audioRef.current = new Audio(audioUrl);
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0;
+    } else {
+      // Fade out current
+      const oldAudio = audioRef.current;
+      let fadeOutInterval = setInterval(() => {
+        if (oldAudio.volume > 0.05) {
+          oldAudio.volume -= 0.05;
+        } else {
+          oldAudio.pause();
+          clearInterval(fadeOutInterval);
+          
+          // Switch and Fade in
+          oldAudio.src = audioUrl;
+          oldAudio.load();
+          oldAudio.play().catch(console.error);
+          let fadeInInterval = setInterval(() => {
+            if (oldAudio.volume < 0.25) { // Suble 25% volume
+              oldAudio.volume += 0.05;
+            } else {
+              clearInterval(fadeInInterval);
+            }
+          }, 100);
+        }
+      }, 50);
+    }
+
+    // Initial play if first time
+    if (audioRef.current.paused && hasStarted && !isMuted) {
+      audioRef.current.volume = 0.25;
+      audioRef.current.play().catch(console.error);
+    }
+
+    return () => {
+      // Cleanup happens on next effect or unmount
+    };
+  }, [currentNode.mood, hasStarted, isMuted]);
 
   const resetStory = () => {
     setCurrentNodeId("introspeccion");
@@ -110,9 +181,69 @@ export default function App() {
     </div>
   );
 
+  const BreathingCircle = () => (
+    <div className="flex flex-col items-center justify-center gap-12 py-10">
+      <div className="relative w-40 h-40 flex items-center justify-center">
+        <motion.div
+          animate={{
+            scale: [1, 1.6, 1.6, 1],
+          }}
+          transition={{
+            duration: 12,
+            times: [0, 0.33, 0.5, 1],
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute inset-0 rounded-full border border-current opacity-20"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.6, 1.6, 1],
+          }}
+          transition={{
+            duration: 12,
+            times: [0, 0.33, 0.5, 1],
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute inset-4 rounded-full bg-current opacity-5"
+        />
+        <div className="text-center z-10 flex flex-col items-center">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key="breath-text"
+              animate={{
+                opacity: [0, 1, 1, 0],
+                y: [5, 0, 0, -5]
+              }}
+              transition={{ 
+                duration: 4, 
+                repeat: Infinity,
+                times: [0, 0.2, 0.8, 1]
+              }}
+              className="text-[10px] uppercase tracking-[0.4em] font-bold"
+            >
+              Respira
+            </motion.p>
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+
+  const AudioToggle = () => (
+    <button 
+      onClick={() => setIsMuted(prev => !prev)}
+      className="fixed top-8 left-8 z-50 p-2 rounded-full bg-white/5 border border-white/10 text-white/50 hover:text-white hover:bg-white/10 transition-all"
+    >
+      {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+    </button>
+  );
+
   if (currentNodeId === "introspeccion") {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 font-sans overflow-hidden">
+        <AudioToggle />
         <div className="fixed inset-0 opacity-30">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-radial from-zinc-800/20 to-transparent" />
         </div>
@@ -136,7 +267,7 @@ export default function App() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 1.5, delay: 0.5 }}
-              className="font-serif text-3xl md:text-4xl text-zinc-300 leading-relaxed italic"
+              className="font-serif text-3xl md:text-4xl text-zinc-100 leading-relaxed italic"
             >
               {currentNode.content.split('\n\n')[0]}
             </motion.h1>
@@ -144,7 +275,7 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 2.5, duration: 2 }}
-              className="text-2xl md:text-3xl font-serif text-zinc-100"
+              className="text-2xl md:text-3xl font-serif text-white"
             >
               {currentNode.content.split('\n\n')[1]}
             </motion.p>
@@ -157,9 +288,12 @@ export default function App() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 4 + (idx * 0.2) }}
-                whileHover={{ scale: 1.01, color: "#fff" }}
-                onClick={() => handleChoice(choice)}
-                className="p-5 rounded-full bg-zinc-900/50 border border-zinc-800 text-sm italic text-zinc-500 hover:border-zinc-500 transition-all text-center"
+                whileHover={{ scale: 1.01, color: "#fff", borderColor: "#fff" }}
+                onClick={() => {
+                  setHasStarted(true);
+                  handleChoice(choice);
+                }}
+                className="p-5 rounded-full bg-zinc-900/50 border border-zinc-700 text-sm italic text-zinc-200 hover:border-zinc-500 transition-all text-center"
               >
                 {choice.text}
               </motion.button>
@@ -172,6 +306,7 @@ export default function App() {
 
   return (
     <div className={`min-h-screen transition-all duration-[2000ms] font-sans selection:bg-sage-200 overflow-x-hidden ${getSensoryBackground(currentNode.mood)}`}>
+      <AudioToggle />
       {/* Stats Bar */}
       {!isTransitioning && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-lg px-6 flex justify-between gap-6 z-50">
@@ -230,20 +365,37 @@ export default function App() {
               className="flex flex-col gap-14 py-20 pb-40"
             >
               <div className="space-y-10">
-                {currentNode.content.split('\n\n').map((p, i) => (
-                  <motion.p 
-                    key={i} 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                      delay: 0.5 + (i * 0.7), // Slower, more intentional staggering
-                      duration: 1.2
-                    }}
-                    className="text-2xl md:text-3xl leading-relaxed font-light font-serif"
-                  >
-                    {p}
-                  </motion.p>
-                ))}
+                {currentNode.content.split('\n\n').map((p, i) => {
+                  const isBreathing = p.toLowerCase().includes("inhala") || p.toLowerCase().includes("suelta");
+                  
+                  if (isBreathing) {
+                    return (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 + (i * 0.7) }}
+                      >
+                        <BreathingCircle />
+                      </motion.div>
+                    );
+                  }
+
+                  return (
+                    <motion.p 
+                      key={i} 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ 
+                        delay: 0.5 + (i * 0.7), 
+                        duration: 1.2
+                      }}
+                      className="text-2xl md:text-3xl leading-relaxed font-light font-serif"
+                    >
+                      {p}
+                    </motion.p>
+                  );
+                })}
               </div>
 
               {currentNode.scripture && (
@@ -272,7 +424,10 @@ export default function App() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 2 + (idx * 0.3) }}
                     whileHover={{ x: 10 }}
-                    onClick={() => handleChoice(choice)}
+                    onClick={() => {
+                      setHasStarted(true);
+                      handleChoice(choice);
+                    }}
                     className="group flex items-center justify-between p-7 rounded-full border border-current opacity-60 hover:opacity-100 transition-all text-left"
                   >
                     <span className="text-xl md:text-2xl font-light italic">{choice.text}</span>

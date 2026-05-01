@@ -48,9 +48,6 @@ export const STORY_NODES: Record<string, StoryNode> = {
       { text: "“Estoy cansado… pero no logro descansar.”", nextNode: "capitulo_1", effect: "dim", impact: { ansiedad: 5, paz: -5 } },
       { text: "“Siento que algo malo podría pasar… aunque no sé qué.”", nextNode: "capitulo_1", effect: "vibrate", impact: { ansiedad: 20 } },
       { text: "“Quiero distraerme… no quiero pensar en nada.”", nextNode: "capitulo_1", effect: "blur", impact: { paz: -10 } },
-      { text: "“Siento que tengo que resolver todo… o todo saldrá mal.”", nextNode: "capitulo_1", effect: "pure", impact: { ansiedad: 10, fe: -5 } },
-      { text: "“Me siento vacío… desconectado.”", nextNode: "capitulo_1", effect: "dim", impact: { paz: -15 } },
-      { text: "“No sé qué me pasa… solo sé que no estoy bien.”", nextNode: "capitulo_1", effect: "blur", impact: { ansiedad: 5 } },
     ]
   },
 
@@ -58,24 +55,24 @@ export const STORY_NODES: Record<string, StoryNode> = {
   capitulo_1: {
     id: "capitulo_1",
     title: "Capítulo 1 — El Susurro de la Tormenta",
-    content: "Te despiertas antes de que suene la alarma.\n\nNo fue el descanso… ni la luz del día. Fue esa sensación. Ese peso en el pecho… como si algo invisible se hubiera sentado sobre ti mientras dormías.\n\nAbres los ojos. El techo está ahí… pero se siente distinto. Más oscuro. Más cerca. Hoy es el día. No sabes exactamente por qué… pero lo sabes.\n\nTal vez es esa conversación que has estado evitando. Ese pago que no sabes cómo cubrir. O ese pensamiento que no te ha soltado en días.\n\nIntentas respirar profundo… pero el aire no baja. Se queda arriba… atrapado… como todo lo demás.\n\nEl silencio de la casa no ayuda. No es paz. Es eco. Y en ese eco… tu mente empieza a hablar. Rápido. Sin orden. Sin misericordia.\n\n¿Y si sale mal? ¿Y si no puedes? ¿Y si esto es más grande que tú?\n\nTe incorporas lentamente en la cama. Tus manos tiemblan un poco. No es dramático… pero es real. Y lo sabes.\n\nHay días difíciles… y hay días como este. Días donde sientes que el laberinto ya empezó… y tú ya estás dentro. Sin mapa. Sin salida clara.\n\nEsto no es nuevo para ti. Pero hoy… se siente más fuerte. Como una tormenta… contenida… a punto de romperlo todo.\n\nY en medio de eso… una verdad incómoda aparece: No puedes quedarte así.\n\nTienes que decidir. Ahora.",
+    content: "Te despiertas antes de que suene la alarma.\n\nNo sabes exactamente por qué.\n\nPero ya estás despierto…\ny tu cuerpo lo sabe antes que tu mente.\n\nHay algo en el pecho. No dolor… pero tampoco es normal.\n\nPeso.\n\nAbres los ojos.\n\nEl techo está ahí…\npero el silencio se siente distinto.\n\nNo es descanso. Es anticipación.\n\nIntentas respirar profundo…\npero el aire no baja del todo.\n\nComo si algo lo detuviera.\n\nTu mente empieza a moverse.\n\nSin orden. Sin permiso.\n\n“Hoy…”\n“No estoy listo…”\n“¿Y si no sale bien?”\n\nNo todo es claro… pero todo se siente urgente.\n\nTe sientas en la cama.\n\nTus manos… apenas tiemblan.\n\nLo suficiente para que lo notes. Lo suficiente para no ignorarlo.\n\nAntes de hacer algo… detente un segundo.\n\nHaz esto:\n\nInhala lento… contando 4\nsostén… 2\nsuelta… 6\n\nOtra vez.\n\nNo cambia todo… pero sí algo. Un pequeño espacio.\n\n¿Qué haces ahora?",
     mood: "introspective",
     audioHint: "Viento suave + latido lejano",
     choices: [
       { 
-        text: "OPCIÓN 1 — CONTROL: Enciendes la luz. Buscas mensajes, noticias, pendientes... algo que te dé control.", 
+        text: "Tomas el teléfono casi en automático. Solo quieres ver cómo está todo… tal vez eso te ayude a ordenar el día.", 
         nextNode: "capitulo_2", 
         effect: "pure",
         impact: { ansiedad: 15, fe: -5 }
       },
       { 
-        text: "OPCIÓN 2 — EVASIÓN: Tomas el teléfono para distraerte. Desaparecer un rato. No pensar.", 
+        text: "Te quedas sentado. Empiezas a repasar mentalmente lo que viene… como intentando adelantarte a cada posible problema.", 
         nextNode: "capitulo_3", 
         effect: "blur",
         impact: { paz: -15, ansiedad: 10 }
       },
       { 
-        text: "OPCIÓN 3 — RENDICIÓN: Cierras los ojos otra vez. Susurras: “Dios… ayúdame.”", 
+        text: "Cierras los ojos unos segundos más. No tienes claro qué necesitas… pero tampoco quieres correr todavía.", 
         nextNode: "capitulo_4", 
         effect: "warm",
         impact: { fe: 20, paz: 10, ansiedad: -10 }
@@ -87,7 +84,7 @@ export const STORY_NODES: Record<string, StoryNode> = {
   capitulo_2: {
     id: "capitulo_2",
     title: "Capítulo 2 — La Ilusión del Control",
-    content: "Enciendes la luz. Demasiado rápido. Como si la oscuridad tuviera la culpa de lo que estás sintiendo.\n\nTomas el teléfono. Desbloqueas. Pantalla brillante. Información inmediata. Eso se siente mejor… por un segundo.\n\nEmpiezas a revisar. Mensajes. Pendientes. Correos. Notas mentales que ni siquiera escribiste… pero ahí están.\n\nTu mente empieza a armar un plan: “Ok… si hago esto primero… y luego aquello… tal vez pueda evitar que todo se complique…”\n\nRespiras un poco más profundo. No porque estés en paz… sino porque sientes que estás haciendo algo.\n\nPero entonces aparece otro pensamiento: ¿Y si no es suficiente? Y otro: ¿Y si algo sale mal? Y otro más: ¿Y si no estás viendo todo?\n\nRegresas al teléfono. Buscas más información. Más respuestas. Más control. Pero entre más buscas… más posibilidades aparecen. Más variables. Más cosas que podrían salir mal.\n\nTu lista crece. Tu mente también. Tu paz… no.\n\nTe detienes un momento. Solo un segundo. Y en ese segundo… una frase cruza tu mente. No sabes de dónde viene… pero la reconoces:\n\n“¿Quién de ustedes, por mucho que se preocupe, puede añadir una sola hora a su vida?”\n\nSilencio. Sabes la respuesta. Pero no sabes cómo parar.\n\nTus manos siguen en el teléfono. Tu mente sigue corriendo. Y algo dentro de ti empieza a cansarse… de ti mismo.",
+    content: "La luz entra de golpe.\n\nTu mente también.\n\nTodo empieza a tomar forma… rápido.\n\nPendientes. Conversaciones. Escenarios.\n\nTe dices que necesitas claridad.\n\nAsí que empiezas a pensar. Ordenar. Prever. Anticipar.\n\n“Si hago esto primero…”\n“y luego aquello…”\n“puedo evitar problemas…”\n\nPor un momento… se siente bien. Como si tuvieras el volante.\n\nPero algo cambia.\n\nUn pensamiento más aparece. Luego otro. Y otro.\n\nAhora ya no estás organizando… estás reaccionando.\n\nAntes de seguir… haz esto:\n\nInhala… 4\nsostén… 2\nsuelta… lento\n\nTu cuerpo intenta bajar… pero tu mente sigue arriba.\n\nUna idea cruza por dentro: “¿Y si no estás viendo todo?”\n\nEso acelera todo otra vez. ¿Qué haces ahora?",
     mood: "pure",
     audioHint: "Tic tac + latido leve",
     scripture: {
@@ -96,12 +93,17 @@ export const STORY_NODES: Record<string, StoryNode> = {
     },
     choices: [
       { 
-        text: "OPCIÓN 1 — INSISTIR: Aprietas los dientes. Te dices que necesitas pensar mejor.", 
+        text: "Tomas más fuerte el control. Sientes que necesitas pensar mejor… más profundo… más rápido.", 
         nextNode: "capitulo_5", 
         impact: { ansiedad: 20, fe: -10 }
       },
       { 
-        text: "OPCIÓN 2 — DETENERTE: Bajas lentamente el teléfono. Esto no está trayendo paz.", 
+        text: "Tomas aire… pero tu mente ya está imaginando lo que podría salir mal.", 
+        nextNode: "capitulo_6", 
+        impact: { paz: 5, ansiedad: 5 }
+      },
+      { 
+        text: "Bajas la mirada un momento. No porque todo esté bien… sino porque ya te cansó intentar resolverlo así.", 
         nextNode: "capitulo_6", 
         impact: { paz: 10, fe: 5 }
       },
@@ -112,20 +114,26 @@ export const STORY_NODES: Record<string, StoryNode> = {
   capitulo_3: {
     id: "capitulo_3",
     title: "Capítulo 3 — Ruido que Anestesia",
-    content: "Tomas el teléfono. Pero no buscas respuestas. Buscas silencio… aunque sea artificial.\n\nDeslizas. Un video. Otro. Otro más. Ríes un poco. O al menos… haces el gesto. Tu mente se distrae. Y por un momento… funciona. El ruido interno baja. No desaparece… pero se aleja.\n\nSigues deslizando. No porque quieras… sino porque no quieres detenerte. Porque sabes… que cuando lo hagas… todo va a volver.\n\nY entonces pasa. Sin aviso. Sin transición. Silencio.\n\nMiras la pantalla… pero ya no estás ahí. Tu cuerpo está en la cama. Tu mente… regresó. Y el peso también. Más pesado. Más rápido. Más real.\n\nPorque ahora no solo está el problema… también está el tiempo que perdiste evitándolo.\n\nY en medio de esa sensación… una verdad incómoda se forma: No puedes huir de lo que está dentro de ti. El ruido ayudó… pero no sanó.",
+    content: "Deslizas.\n\nUna vez. Otra. Otra más.\n\nTu mente baja el ritmo. No porque esté en paz… sino porque está ocupada.\n\nUn video. Otro. Otro.\n\nSin darte cuenta… pasan minutos. Tal vez más.\n\nY por un momento… funciona.\n\nPero cuando te detienes… todo vuelve.\n\nMás claro. Más presente. Más incómodo.\n\nY ahora hay algo más: Sabes que lo evitaste.\n\nAntes de decidir… quédate aquí un segundo.\n\nInhala lento…\nsuelta más lento\n\nNo necesitas salir corriendo todavía. ¿Qué haces ahora?",
     mood: "blur",
     audioHint: "Scroll, notificaciones -> Silencio abrupto",
     choices: [
       { 
-        text: "OPCIÓN 1 — VOLVER A EVADIR: Tomas aire. Abres otra app.", 
+        text: "Buscas otro estímulo. Algo más que te distraiga… solo un poco más.", 
         nextNode: "capitulo_3", 
         effect: "vibrate",
         impact: { ansiedad: 10, paz: -10 }
       },
       { 
-        text: "OPCIÓN 2 — ENFRENTAR: Apagas la pantalla. El silencio vuelve. Pero esta vez… no huyes.", 
+        text: "Dejas el teléfono a un lado… pero tu mente empieza a llenar el espacio otra vez.", 
         nextNode: "capitulo_6", 
         impact: { fe: 5, paz: 5 }
+      },
+      { 
+        text: "Te quedas en ese silencio incómodo… aunque no te guste.", 
+        nextNode: "capitulo_4", 
+        effect: "warm",
+        impact: { fe: 10, paz: 5 }
       },
     ]
   },
@@ -134,7 +142,7 @@ export const STORY_NODES: Record<string, StoryNode> = {
   capitulo_4: {
     id: "capitulo_4",
     title: "Capítulo 4 — Un Susurro en el Silencio",
-    content: "Cierras los ojos. No porque tengas paz. Sino porque no la tienes.\n\nTu mente sigue hablando. Pero ya no le respondes. Por primera vez en mucho tiempo… no intentas resolver. No intentas escapar.\n\nSolo dices… “Dios… ayúdame.”\n\nNo fue una oración estructurada. No fue teológica. No fue perfecta. Fue real.\n\nY en ese momento… no todo cambia. Tu situación sigue ahí. Tus pensamientos… también. Pero algo se mueve. Pequeño. Casi imperceptible. Pero distinto.\n\nEs como si el peso… ya no estuviera solo sobre ti.\n\nUna frase llega a tu mente. No la forzaste. No la buscaste. Solo… llegó:\n\n“Echa sobre mí tu carga… porque yo cuido de ti.”\n\nSilencio. No hay música épica. No hay emoción intensa. Solo… espacio.\n\nY en ese espacio… te das cuenta de algo que no esperabas: Tal vez no necesitas tener todas las respuestas… para no estar solo.",
+    content: "No hiciste nada espectacular.\n\nSolo… no huiste.\n\nEl silencio está ahí. Tu mente también. Pero tú… te quedaste.\n\nNo sabes exactamente qué hacer con eso. Así que no haces mucho.\n\nSolo una frase… sale. Sin estructura. Sin filtro: “Dios…”\n\nNo sigues. No porque no quieras… sino porque no sabes cómo.\n\nY aun así… no se siente vacío.\n\nNo hay una respuesta clara. No hay una solución inmediata. Pero algo cambia de lugar.\n\nComo si el peso… ya no estuviera completamente sobre ti.\n\nAntes de moverte… haz esto:\n\nInhala…\nsostén…\nsuelta lento\n\nUna idea llega… suave: “No tienes que cargarlo solo.”\n\nNo sabes si lo crees del todo. Pero tampoco lo rechazas. ¿Qué haces ahora?",
     mood: "warm",
     audioHint: "Silencio + nota suave de piano",
     scripture: {
@@ -143,14 +151,19 @@ export const STORY_NODES: Record<string, StoryNode> = {
     },
     choices: [
       { 
-        text: "OPCIÓN 1 — DUDAR: Abres los ojos. Nada cambió afuera. Cuestionas lo que hiciste.", 
+        text: "Abres los ojos. Parte de ti quiere volver a “hacer algo” para sentirse más seguro.", 
         nextNode: "capitulo_2", 
         impact: { fe: -10, ansiedad: 10 }
       },
       { 
-        text: "OPCIÓN 2 — PERMANECER: No entiendes todo. Pero decides no levantarte todavía.", 
+        text: "Te quedas unos segundos más… sin tener claro qué está pasando.", 
         nextNode: "capitulo_7", 
         impact: { fe: 25, paz: 25, ansiedad: -15 }
+      },
+      { 
+        text: "Intentas poner en palabras lo que sientes… aunque no sea perfecto.", 
+        nextNode: "capitulo_7", 
+        impact: { fe: 30, paz: 20 }
       },
     ]
   },
@@ -159,12 +172,25 @@ export const STORY_NODES: Record<string, StoryNode> = {
   capitulo_5: {
     id: "capitulo_5",
     title: "Capítulo 5 — El Punto de Ruptura",
-    content: "Tu mente está cansada. Tu cuerpo también. Has tratado de sostener todo… pero ya no puedes.\n\nY en medio de ese cansancio… aparece una verdad incómoda: No tienes el control.",
+    content: "Sigues pensando.\n\nNo porque quieras… sino porque no sabes cómo detenerte.\n\nTu mente va rápido. Pero ya no se siente útil. Se siente pesada.\n\nLas ideas ya no traen claridad. Solo más ruido.\n\n“¿Y si no es suficiente?”\n“¿Y si ya es demasiado tarde?”\n“¿Y si esto se sale de control?”\n\nTu cuerpo responde.\n\nMandíbula tensa. Hombros rígidos. Respiración corta.\n\nTe das cuenta de algo… incómodo.\n\nYa no estás resolviendo. Estás sobreviviendo dentro de tu propia mente.\n\nY eso cansa. Más de lo que quieres admitir.\n\nAntes de seguir… detente aquí.\n\nHaz esto:\n\nInhala lento… contando 4\nsostén… 2\nsuelta… 6\n\nOtra vez.\n\nNo necesitas calmar todo. Solo bajar un poco.\n\nTu mente intenta volver. Pero ahora… hay un pequeño espacio.\n\nEn ese espacio… aparece algo diferente: No un pensamiento. Una verdad.\n\nNo tienes que poder con todo esto.\n\nNo sabes si lo crees del todo. Pero tampoco puedes ignorarlo. ¿Qué haces ahora?",
     mood: "collapse",
     audioHint: "Latido fuerte",
     choices: [
-      { text: "Seguir intentando…", nextNode: "final_colapso", impact: { ansiedad: 20 } },
-      { text: "Rendirme… aunque me cueste.", nextNode: "capitulo_7", impact: { fe: 25, paz: 20 } },
+      { 
+        text: "Aprietas un poco más. Sientes que si aflojas… todo se va a desordenar.", 
+        nextNode: "final_colapso", 
+        impact: { ansiedad: 20 } 
+      },
+      { 
+        text: "Intentas organizar tus ideas otra vez… pero ya sin tanta claridad.", 
+        nextNode: "capitulo_5", 
+        impact: { ansiedad: 10 } 
+      },
+      { 
+        text: "Te quedas quieto unos segundos… sin intentar resolver nada.", 
+        nextNode: "capitulo_7", 
+        impact: { fe: 25, paz: 20 } 
+      },
     ]
   },
 
@@ -172,12 +198,25 @@ export const STORY_NODES: Record<string, StoryNode> = {
   capitulo_6: {
     id: "capitulo_6",
     title: "Capítulo 6 — Cuando ya no puedes más",
-    content: "Has intentado ignorarlo. Has intentado controlarlo. Pero sigue ahí.\n\nTal vez el problema… no es que no estás haciendo suficiente.\n\nTal vez… es que estás cargando algo que nunca fue tuyo.",
+    content: "El impulso de hacer algo… baja.\n\nNo desaparece. Pero pierde fuerza.\n\nYa no estás corriendo. Pero tampoco sabes hacia dónde ir.\n\nEs un lugar extraño. Sin ruido excesivo… pero sin respuestas claras.\n\nTu cuerpo empieza a aflojar un poco. No completamente. Pero lo suficiente.\n\nY en ese espacio… te das cuenta de algo que habías evitado: No puedes con esto solo.\n\nNo como fracaso. Como realidad.\n\nY curiosamente… eso no te rompe. Te ubica.\n\nAntes de moverte… haz esto:\n\nInhala…\nsostén…\nsuelta lento\n\nOtra vez.\n\nNo solucionó todo. Pero ya no estás igual.\n\nUna idea se forma… sin presión: “Puedes soltar… aunque sea un poco.”\n\nNo sabes cómo hacerlo completamente. Pero puedes empezar. ¿Qué haces ahora?",
     mood: "dim",
     audioHint: "Silencio profundo",
     choices: [
-      { text: "“Entonces… ¿qué hago?”", nextNode: "capitulo_7", impact: { fe: 10, paz: 10 } },
-      { text: "“No… yo tengo que poder solo.”", nextNode: "capitulo_5", impact: { ansiedad: 20, fe: -10 } },
+      { 
+        text: "Una parte de ti quiere volver a hacer algo… aunque ya viste que no ayudó mucho.", 
+        nextNode: "capitulo_2", 
+        impact: { ansiedad: 15, fe: -5 } 
+      },
+      { 
+        text: "Te quedas ahí… dejando que el momento sea lo que es.", 
+        nextNode: "capitulo_7", 
+        impact: { fe: 15, paz: 15 } 
+      },
+      { 
+        text: "Intentas decir en voz baja lo que realmente estás sintiendo… aunque no suene ordenado.", 
+        nextNode: "capitulo_7", 
+        impact: { fe: 20, paz: 10 } 
+      },
     ]
   },
 
@@ -185,17 +224,29 @@ export const STORY_NODES: Record<string, StoryNode> = {
   capitulo_7: {
     id: "capitulo_7",
     title: "Capítulo 7 — Quietud",
-    content: "No fue elegante. No fue fuerte. Pero fue real. Dejaste de luchar… aunque fuera por un momento.\n\ny en ese espacio… no llegó una solución… llegó algo mejor: Presencia.",
+    content: "No pasó algo espectacular.\n\nNo hubo un cambio brusco. Pero algo es distinto.\n\nNo estás corriendo. No estás empujando. No estás evitando.\n\nSolo… estás.\n\nTu respiración se siente más profunda. No perfecta. Pero más estable.\n\nTu mente sigue trayendo pensamientos. Pero ya no tienen el mismo peso.\n\nNo porque desaparecieron… sino porque ya no los estás sosteniendo igual.\n\nEs sutil. Pero real.\n\nAntes de avanzar… quédate aquí:\n\nInhala… 4\nsostén… 2\nsuelta… 6\n\nEn medio de esa quietud… aparece algo que no estabas buscando: No una respuesta. Una dirección.\n\nNo tienes que resolver todo hoy.\n\nOtra más: No todo depende de ti.\n\nNo sabes cómo… eso trae espacio.\n\nY en ese espacio… aparece algo nuevo: Confianza. Pequeña. Frágil. Pero presente. ¿Qué haces ahora?",
     mood: "warm",
-    audioHint: "Piano suave",
+    audioHint: "Silencio profundo + piano muy suave",
     scripture: {
       reference: "Salmo 46:10",
       text: "Estad quietos… y conoced que Yo soy Dios."
     },
-    transitionText: "Tal vez la paz… no viene de entender todo. Viene de confiar en Aquel que sí lo entiende.",
     choices: [
-      { text: "“Quiero aprender a confiar.”", nextNode: "final_libertad", impact: { fe: 30, paz: 30, ansiedad: -40 } },
-      { text: "“No sé si puedo… pero guíame.”", nextNode: "final_paz_progresiva", impact: { fe: 15, paz: 15, ansiedad: -20 } },
+      { 
+        text: "Empiezas a pensar en lo que viene… pero desde un lugar un poco más tranquilo.", 
+        nextNode: "final_paz_progresiva", 
+        impact: { fe: 20, paz: 20, ansiedad: -20 } 
+      },
+      { 
+        text: "Te quedas unos momentos más… sin prisa por salir de aquí.", 
+        nextNode: "final_libertad", 
+        impact: { fe: 40, paz: 40, ansiedad: -50 } 
+      },
+      { 
+        text: "Dices en voz baja lo que estás soltando… aunque no sepas cómo hacerlo perfecto.", 
+        nextNode: "final_libertad", 
+        impact: { fe: 30, paz: 30, ansiedad: -40 } 
+      },
     ]
   },
 
@@ -213,7 +264,7 @@ export const STORY_NODES: Record<string, StoryNode> = {
       text: "El que encubre su pecado no prospera; Mas el que los confiesa y se aparta alcanzará misericordia."
     },
     choices: [
-      { text: "Intentar de nuevo", nextNode: "introspeccion", impact: { ansiedad: -100, paz: -100, fe: -100 } }
+      { text: "Intentar de nuevo (desde la honestidad)", nextNode: "introspeccion", impact: { ansiedad: -100, paz: -100, fe: -100 } }
     ]
   },
 
@@ -229,7 +280,7 @@ export const STORY_NODES: Record<string, StoryNode> = {
       text: "Separados de mí… nada podéis hacer."
     },
     choices: [
-      { text: "Rendirme", nextNode: "capitulo_7" }
+      { text: "“Rendirme y admitir que no puedo solo”", nextNode: "capitulo_7" }
     ]
   },
 
