@@ -26,6 +26,7 @@ const MOOD_AUDIO: Record<string, string> = {
 
 export default function App() {
   const [currentNodeId, setCurrentNodeId] = useState<string>("introspeccion");
+  const [history, setHistory] = useState<string[]>([]);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
@@ -44,6 +45,9 @@ export default function App() {
   );
 
   const handleChoice = (choice: any) => {
+    // Add to history
+    setHistory(prev => [...prev, currentNodeId]);
+
     // Update Stats
     if (choice.impact) {
       setStats(prev => ({
@@ -56,6 +60,7 @@ export default function App() {
     // Special reset logic for certain transitions
     if (choice.nextNode === "introspeccion" && choice.impact?.ansiedad === -100) {
       setStats({ ansiedad: 10, paz: 10, fe: 5 });
+      setHistory([]);
     }
 
     if (currentNode.transitionText) {
@@ -252,7 +257,7 @@ export default function App() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 2 }}
-          className="max-w-xl w-full text-center space-y-16 relative z-10"
+          className="max-w-xl w-full text-center space-y-12 relative z-10"
         >
           <div className="space-y-6">
             <motion.div 
@@ -261,24 +266,21 @@ export default function App() {
               transition={{ duration: 4, times: [0, 0.3, 0.7, 1] }}
               className="text-zinc-500 text-[10px] uppercase tracking-[0.4em] font-bold"
             >
-              El Umbral
+              Portal del Corazón
             </motion.div>
-            <motion.h1 
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 1.5, delay: 0.5 }}
-              className="font-serif text-3xl md:text-4xl text-zinc-100 leading-relaxed italic"
-            >
-              {currentNode.content.split('\n\n')[0]}
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 2.5, duration: 2 }}
-              className="text-2xl md:text-3xl font-serif text-white"
-            >
-              {currentNode.content.split('\n\n')[1]}
-            </motion.p>
+            <div className="space-y-4">
+              {currentNode.content.split('\n\n').map((p, i) => (
+                <motion.p
+                   key={i}
+                   initial={{ y: 20, opacity: 0 }}
+                   animate={{ y: 0, opacity: 1 }}
+                   transition={{ duration: 1.5, delay: 0.5 + (i * 0.5) }}
+                   className={`font-serif leading-relaxed italic ${i === 0 ? 'text-xl md:text-2xl text-zinc-400' : 'text-3xl md:text-4xl text-white'}`}
+                >
+                  {p}
+                </motion.p>
+              ))}
+            </div>
           </div>
           
           <div className="grid grid-cols-1 gap-3">
@@ -329,11 +331,20 @@ export default function App() {
       )}
 
       <main className={`story-container relative z-10 min-h-screen flex flex-col justify-center ${getEffectClasses(currentNode.mood)}`}>
-        <header className="absolute top-8 left-1/2 -translate-x-1/2 opacity-20 hover:opacity-100 transition-opacity">
-          <button onClick={resetStory} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
+        <header className="absolute top-8 left-8 right-8 flex justify-between items-center z-50">
+          <button onClick={resetStory} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-20 hover:opacity-100 transition-opacity">
             <RefreshCcw size={12} />
             <span>Reiniciar</span>
           </button>
+          
+          {currentNode.level && (
+            <div className="flex items-center gap-3">
+              <div className="h-px w-8 bg-current opacity-20" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-40">
+                Estación {currentNode.level} — {currentNode.emotion}
+              </span>
+            </div>
+          )}
         </header>
 
         <AnimatePresence mode="wait">
