@@ -12,9 +12,9 @@ export type RoomId =
   // Zona 4: El Quiebre
   | 'cannot-continue' | 'awkward-silence' | 'truth-avoided' | 'emotional-floor'
   // Zona 5: La Quietud
-  | 'stillness' | 'breathe-again' | 'open-window' | 'safe-place'
+  | 'stillness' | 'breathe-again' | 'open-window' | 'safe-place' | 'noiseless-peace'
   // Zona 6: El Camino
-  | 'pending-call' | 'need-to-say' | 'small-step' | 'live-again'
+  | 'pending-call' | 'need-to-say' | 'small-step' | 'live-again' | 'open-door' | 'slow-dawn'
   | 'room-of-shadows' | 'grace-garden' | 'the-well';
 
 export interface Choice {
@@ -520,6 +520,24 @@ export const ROOMS: Record<RoomId, Room> = {
     theme: { bg: 'bg-teal-950', text: 'text-teal-100', accent: 'teal' },
     metadata: { energy: 'low', focus: ['seguridad', 'amor'] }
   },
+  'noiseless-peace': {
+    id: 'noiseless-peace',
+    zone: 'quietud',
+    sensoryOpening: "Un silencio que no vacío, sino lleno. Como si el aire mismo tuviera una textura de terciopelo y paz.",
+    internalRefleciton: "Hay una paz que sobrepasa todo entendimiento. No es que los problemas hayan muerto, es que tú has cobrado vida en un lugar donde ellos ya no tienen el micrófono. Descansa en esta resonancia estable de tu alma.",
+    pauseText: "Habita la paz que no hace ruido.",
+    microExercise: {
+      title: "Resonancia Interna",
+      instructions: "Quédate en silencio absoluto. Siente la estabilidad de tu cuerpo. No necesitas buscar nada; ya has llegado."
+    },
+    sownTruth: "La paz de Dios gobernará vuestros corazones. Es un gobierno de calma y orden divino.",
+    choices: [
+      { text: "Reposas en esta paz.", nextRoom: 'safe-place' },
+      { text: "Te sientes listo para avanzar.", nextRoom: 'pending-call' }
+    ],
+    theme: { bg: 'bg-emerald-950', text: 'text-emerald-100', accent: 'emerald' },
+    metadata: { energy: 'low', focus: ['paz', 'estabilidad'] }
+  },
   'pending-call': {
     id: 'pending-call',
     zone: 'camino',
@@ -591,6 +609,41 @@ export const ROOMS: Record<RoomId, Room> = {
     ],
     theme: { bg: 'bg-amber-900', text: 'text-amber-100', accent: 'amber' },
     metadata: { energy: 'medium', focus: ['vida', 'gratitud'] }
+  },
+  'open-door': {
+    id: 'open-door',
+    zone: 'camino',
+    sensoryOpening: "Una puerta se abre lentamente frente a ti. Entra un viento cálido que huele a tierra mojada y a nuevas oportunidades.",
+    internalRefleciton: "Cruzar el umbral da miedo, pero quedarte atrás es morir en vida. Dios no solo abre puertas, Él camina a través de ellas contigo. El miedo es solo el eco de lo que dejas atrás.",
+    pauseText: "Siente el viento en tu cara.",
+    microExercise: {
+      title: "Umbral de Fe",
+      instructions: "Imagina que dejas en el marco de la puerta lo que ya no necesitas cargar. Da un paso mental hacia adelante."
+    },
+    sownTruth: "He aquí, he puesto delante de ti una puerta abierta, la cual nadie puede cerrar.",
+    choices: [
+      { text: "Cruzas el umbral con fe.", nextRoom: 'live-again' },
+      { text: "Miras de dónde vienes una última vez.", nextRoom: 'slow-dawn' }
+    ],
+    theme: { bg: 'bg-orange-900', text: 'text-orange-100', accent: 'orange' },
+    metadata: { energy: 'medium', focus: ['oportunidad', 'fe'] }
+  },
+  'slow-dawn': {
+    id: 'slow-dawn',
+    zone: 'camino',
+    sensoryOpening: "El sol empieza a asomar por el horizonte. El cielo se tiñe de tonos rosados y dorados. Es un amanecer que no tiene prisa.",
+    internalRefleciton: "La restauración suele ser lenta, como el amanecer. No intentes forzar el mediodía en tu alma. Cada rayo de luz hoy es una promesa cumplida. Estás vivo para verlo.",
+    pauseText: "Contempla la luz naciendo.",
+    microExercise: {
+      title: "Luz Naciente",
+      instructions: "Cierra los ojos e imagina el calor del primer rayo de sol en tu piel. Agradécelo como un regalo personal."
+    },
+    sownTruth: "Nuevas son cada mañana Sus misericordias. Tu historia no ha terminado, apenas amanece.",
+    choices: [
+      { text: "Caminas hacia la luz plena.", nextRoom: 'welcome' }
+    ],
+    theme: { bg: 'bg-amber-800', text: 'text-amber-50', accent: 'amber' },
+    metadata: { energy: 'low', focus: ['esperanza', 'renovacion'] }
   },
   'room-of-shadows': {
     id: 'room-of-shadows',
